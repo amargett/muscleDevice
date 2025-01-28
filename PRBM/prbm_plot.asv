@@ -1,0 +1,22 @@
+close all; clear; 
+N = 10; 
+theta_vals = linspace(pi/4, 0, N); 
+
+rAdata = zeros(2,N); 
+rtipdata = zeros(2,N); 
+for i = 1:N
+    [rAdata(:,i), rtipdata(:,i)] = prbm(theta_vals(i)); 
+end
+figure()
+plot(theta_vals, rAdata(1,:), "Color",'r'); 
+hold on 
+plot(theta_vals, rtipdata(1,:), "Color", 'b'); 
+title('x'); 
+hold off
+
+figure()
+plot(theta_vals, rAdata(2,:), "Color",'r'); 
+hold on 
+plot(theta_vals, rtipdata(2,:), "Color", 'b'); 
+title('y'); 
+hold off

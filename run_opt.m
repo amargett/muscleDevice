@@ -1,7 +1,7 @@
 global data; global p; 
 data = []; p = []; params = []; 
 
-%Parameters to set
+%% Parameters to set
 E = 18E9; % material property
 r_well = 7.5E-3; 
 t0 = 1E-3; % thickness of constant part of beam
@@ -14,7 +14,7 @@ sigma_yield = 5E7; % Pa, material yield stress
 
 params = [E, r_well, t0, r_inner, l_tip, SF, Tmax, sigma_yield];
 
-% Constraints
+%% Constraints
 k_min = 0.3; k_max = 5; %N/m
 l_max = r_well- t0 - r_inner - l_m - l_tip; % upper bound beam length
 % manufacturing limits, not sure of this yet
@@ -22,7 +22,7 @@ t_min = 0.1E-3; %m, min reasonable thickness
 w_min = 0.1E-3; %m, min reasonable width
 
 
-% optimization to minimize Kb/Kr
+%% Optimization to minimize Kb/Kr
 fun = @(z) get_prbm_cost(z, params); 
 
 lb = [0, r_well/2, t_min, w_min]; % lower bound 
@@ -32,6 +32,7 @@ z0 = [0, r_well/2, t_min, w_min];
 [z, fval] = fmincon(fun, z0, [], [], [], [], lb, ub); 
 z_deg_mm = z.*[180/pi 1E3 1E3 1E3]; 
 
+%% Display Variables & Data
 varNames = {'theta [deg]', 'l [mm]', 't [mm]', 'w [mm]'};
 resultsTable = table(varNames', z_deg_mm', 'VariableNames', ...
     {'Variable', 'Optimal_Value'});
@@ -46,7 +47,7 @@ disp('Kb Motor: '); disp(Kb_motor);
 disp('Kb Yield: '); disp(Kb_yield);
 disp('S: '); disp(s);
 
-
+%% Create & Display PRBM Polynomial String
 poly_order = 4; 
 poly_eq = sprintf('y = %.6fx^%d', p(1), poly_order); % Start with the highest-order term
 for k = 2:length(p)

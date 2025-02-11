@@ -1,33 +1,36 @@
 clear; close all; 
 % Parameters
-theta0 = (90- 17/2)*pi/180;
 theta_max = pi/4; % Maximum angle
 num_frames = 100; % Number of animation frames
-theta_vals = linspace(theta0, theta_max, num_frames);
+theta_vals = linspace(0, theta_max, num_frames);
 
 % GIF parameters
 gif_filename = 'prbm_animation.gif'; % Output GIF file name
 delay_time = 0.1; % Delay between frames (in seconds)
 
-% Example: Two-link manipulator (replace with your robot's kinematics)
-lfull = 50; 
-ltip = 3.25; 
-lrigid = 5; 
-ltop = 17; 
-lsmall = 1; 
+%% Parameters to set
+r_well = 7.5; % mm
+l = 3.75; %mm
+theta = 3*pi/8;
+t0 = 1; % mm, thickness of constant part of beam
+r_inner = 0.5; % mm, radius of inner circle
+l_r = r_well-r_inner-t0-l- 0.5; % rigid length
+l_tip = r_well-t0-(l+l_r+r_inner)*sin(theta); % mm, length of variable stiffness tip
 
-% Find Model Variables from CAD vars
-l = lfull - lrigid/2; 
-y = 0.8517; 
-lc = (1-y)*l/2;
+%% PRBM/geometric parameters
+gamma = 0.8517; 
+l_eff = l + l_r/2;  % distance to force application (PRBM)
+lc=(1-gamma)*l_eff/2;
+l_top = (r_inner+l+l_r)*cos(theta);  
+
 
 % Initialize figure
 figure;
 hold on;
 axis equal;
 grid on;
-xlim([-lfull, lfull]);
-ylim([0, lfull+ltip]);
+xlim([-r_well, r_well]);
+ylim([0, r_well]);
 xlabel('X-axis');
 ylabel('Y-axis');
 title('PRBM Animation');
@@ -35,51 +38,36 @@ title('PRBM Animation');
 % Initialize plot handles
 link1_plot = plot([0, 0], [0, 0], 'r-', 'LineWidth', 2); % Link 1
 link2_plot = plot([0, 0], [0, 0], 'b-', 'LineWidth', 2); % Link 2
-link3_plot = plot([0, 0], [0, 0], 'r-', 'LineWidth', 2); % Link 3
-
-link4_plot = plot([0, 0], [0, 0], 'r-', 'LineWidth', 2); % Link 1
-link5_plot = plot([0, 0], [0, 0], 'b-', 'LineWidth', 2); % Link 2
-link6_plot = plot([0, 0], [0, 0], 'r-', 'LineWidth', 2); % Link 3
-
-link7_plot = plot([0, 0], [0, 0], 'g-', 'LineWidth', 2); % Link 3
+link3_plot = plot([0, 0], [0, 0], 'g-', 'LineWidth', 2); % Link 3
+link4_plot = plot([0, 0], [0, 0], 'r-', 'LineWidth', 2); % Link 4
+link5_plot = plot([0, 0], [0, 0], 'b-', 'LineWidth', 2); % Link 5
 
 joint_plot = plot(0, 0, 'ko', 'MarkerSize', 4, 'MarkerFaceColor', 'k'); % Joints
 
 % Animation loop
 for frame = 1:num_frames
-    theta = theta_vals(frame); 
-    
-    theta2 = theta + pi - theta0; 
-    theta3 = theta + pi/2 -theta0; 
+    theta_p = theta_vals(frame);
+
     ihat = [1 0]; jhat = [0 1];
 
-    rA = (lc+ y*l*sin(theta))*jhat + y*l*cos(theta)*ihat; 
-    rtip = rA + ltop/2*(cos(theta2)*ihat + sin(theta2)*jhat) ...
-    + (ltip + lc + lrigid/2) * (cos(theta3)*ihat+ sin(theta3)*jhat);
     % Forward kinematics (example for 2-link planar robot)
     % Replace with your own joint/link equations
-    r1 =  [lsmall, lc]; 
-    r2 = r1+ y*l*sin(theta)*jhat + y*l*cos(theta)*ihat;
-    r3 = r2 + (lc + lrigid/2) * (cos(theta3)*ihat+ sin(theta3)*jhat); 
-    
-    theta = 2*theta0 -theta;
 
-    r4 =  [-lsmall, lc]; 
-    r5 = r4+ y*l*sin(theta)*jhat - y*l*cos(theta)*ihat;
-    r6 = r5 + (lc + lrigid/2) * (cos(theta3)*ihat+ sin(theta3)*jhat); 
+    r1 = (r_inner +lc)*(cos(theta)*ihat + sin(theta)*jhat);
+    r2 = r1 + gamma*l_eff*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
+    r3 = r2 + (lc+l_r/2)*(cos(theta)*ihat + sin(theta)*jhat); 
+    r4 = r3 + l_top*(cos(theta_p)*-ihat + sin(theta_p)*jhat); 
+    r5 = r4 +(l_tip)*(sin(theta_p)*ihat + cos(theta_p)*jhat);
 
-    
     % Update link and joint positions
-    set(link1_plot, 'XData', [lsmall, r1(1)], 'YData', [0, r1(2)]);
+    set(link1_plot, 'XData', [0, r1(1)], 'YData', [0, r1(2)]);
     set(link2_plot, 'XData', [r1(1), r2(1)], 'YData', [r1(2), r2(2)]);
     set(link3_plot, 'XData', [r2(1), r3(1)], 'YData', [r2(2), r3(2)]);
-    set(link4_plot, 'XData', [-lsmall, r4(1)], 'YData', [0, r4(2)]);
+    set(link4_plot, 'XData', [r3(1), r4(1)], 'YData', [r3(2), r4(2)]);
     set(link5_plot, 'XData', [r4(1), r5(1)], 'YData', [r4(2), r5(2)]);
-    set(link6_plot, 'XData', [r5(1), r6(1)], 'YData', [r5(2), r6(2)]);
-    set(link7_plot, 'XData', [r3(1), r6(1)], 'YData', [r3(2), r6(2)]);
 
-    set(joint_plot, 'XData', [r1(1), r2(1), r3(1), r4(1), r5(1), r6(1)],...
-        'YData', [r1(2), r2(2), r3(2), r4(2), r5(2), r6(2)]);
+    set(joint_plot, 'XData', [r1(1), r2(1), r3(1), r4(1), r5(1)],...
+                    'YData', [r1(2), r2(2), r3(2), r4(2), r5(2)]);
    
     % Capture the frame
     frame_image = getframe(gcf);

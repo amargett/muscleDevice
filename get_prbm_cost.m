@@ -2,19 +2,21 @@ function cost = get_prbm_cost(z, params)
     % Initiliazing global variables to track Kb, Kr, p
     global data
     global p
-    data = []; p = []; 
-
+    global x_vals
+    global y_vals
+    
     %% Get Input Variables
     E = params(1); r_well = params(2); t0 = params(3); r_inner = params(4); 
-    l_tip = params(5); SF = params(6); Tmax = params(7); sigma_yield = params(8); 
+    poly_order = params(5); SF = params(6); Tmax = params(7); sigma_yield = params(8); 
 
     theta = z(1); l = z(2); t = z(3); w = z(4); 
     
     %% PRBM/geometric parameters
     gamma = 0.8517; 
-    l_r = r_well - r_inner - t0 - l_tip -l; % rigid length
+    l_r = r_well-r_inner-t0-l; % rigid length
+    l_tip = r_well-t0-(l+l_r+r_inner)*sin(theta); % mm, length of variable stiffness tip
     l_eff = l + l_r/2;  % distance to force application (PRBM)
-    lc=(1-gamma)*l_eff;
+    lc=(1-gamma)*l_eff/2;
     l_top = (r_inner+l+l_r)*cos(theta); 
 
     %% Fit Polynomial to PRBM Data
@@ -26,12 +28,11 @@ function cost = get_prbm_cost(z, params)
     end
     
     % Extract x and y components
-    x_vals = rtipdata(1, :); y_vals = rtipdata(2, :);
+    x_vals = rtipdata(1, :)*10^3; y_vals = rtipdata(2, :)*10^3;
 
     % Fit a polynomial to the data
-    poly_order = 4; % Change the order of the polynomial if needed
     p = polyfit(x_vals, y_vals, poly_order);
-
+    
     %% Radial Stiffness Kr
     I = @(t,w) w*t^3/12; 
     Kr = 1/(sin(theta)^2*l/(2*E*I(t,w))+...
@@ -46,7 +47,6 @@ function cost = get_prbm_cost(z, params)
     
     % Kb Upper Bound due to yield stress
     s = get_s();  
-    this_xy = get_xy(pi/2); this_x = this_xy(1); 
     Kb_max_yield = sigma_yield*w*t^2/(SF*6*l_eff*s); 
     
     % penalizes heavily for breaking bounds
@@ -60,36 +60,17 @@ function cost = get_prbm_cost(z, params)
         % finds endpoint position as a function of theta
         ihat = [1 0]; jhat = [0 1]; 
         rA = (r_inner +lc)*(cos(theta)*ihat + sin(theta)*jhat); 
-        rB = rA + gamma*l_eff*(cos(theta+theta_p)*ihat +sin(theta+theta_p)*jhat); 
-        rC = rB + (lc+l_r/2+l_tip)*(cos(theta)*ihat + sin(theta)*jhat)...
-            + l_top*(cos(theta+pi/2)*ihat + sin(theta+pi/2)*jhat);
+        rB = rA + gamma*l_eff*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat); 
+        rC = rB + (lc+l_r/2)*(cos(theta)*ihat + sin(theta)*jhat)...
+             +(l_tip)*(sin(theta_p)*ihat + cos(theta_p)*jhat)...
+            + l_top*(cos(theta_p)*-ihat + sin(theta_p)*jhat);
     end
 
-    function xy = get_xy(theta_c)
-        % Finds xy array for a given polynomial function at a given theta
-        
-        eqns = @(v)[ v(1) * tan(theta_c - pi/2) - v(2);  % First equation
-                     polyval(p, v(1)) - v(2) ];         % Second equation
-        
-        initial_guess = [0.5, 0.5];  % Initial guess for [x, y]
-        
-        % Call fsolve to solve the system
-        options = optimset('Display', 'off');  % Suppress display of output
-        [xy, ~] = fsolve(eqns, initial_guess, options);
-        
-    end
-
-    function r = get_r(theta_c)
-        xy = get_xy(theta_c); x = xy(1); y = xy(2); 
-        r = sqrt(x^2 + y^2); 
-    end
-    
     function s = get_s()
-        r_vals = arrayfun(@(t) get_r(t), theta_vals); % Evaluate r at each theta
         s = 0; 
         for j = 1:length(theta_vals)-1
-            s = s + r_vals(j)*(theta_vals(j+1)-theta_vals(j)); 
+            r = sqrt(x_vals(j)^2 + y_vals(j)^2); 
+            s = s + r*(theta_vals(j+1)-theta_vals(j)); 
         end
     end
-
 end

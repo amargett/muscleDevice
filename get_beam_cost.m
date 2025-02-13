@@ -14,7 +14,7 @@ function cost = get_beam_cost(h, params, p_in)
     k2_low = get_k2(theta_f);
 
     cost = (k1+k2_low)/(k1+k2_high) ;
-    if isnan(cost)
+    if isnan(cost)||cost<0
         cost = 10000000; 
     end
     %% Helper Functions

@@ -8,6 +8,7 @@ function cost = get_prbm_cost(z, params)
     %% Get Input Variables
     E = params(1); r_well = params(2); t0 = params(3); r_inner = params(4); 
     poly_order = params(5); SF = params(6); Tmax = params(7); sigma_yield = params(8); 
+    theta_f = params(9);
 
     theta = z(1); l = z(2); t = z(3); w = z(4); 
     
@@ -27,6 +28,20 @@ function cost = get_prbm_cost(z, params)
         rtipdata(:,i) = prbm(theta_vals(i)); 
     end
     
+        % Given x value to search for
+    x_target = 4.5E-3; % Change this to your desired x value
+    
+    % Find the index of the closest x value in the first row of rtipdata
+    [~, idx] = min(abs(rtipdata(1, :) - x_target));
+    
+    % Retrieve the corresponding theta value
+    theta_closest = theta_vals(idx);
+
+    fea_K = l_eff/theta_closest; 
+    
+    % Display result
+    disp('K Value found in FEA: '+ string(fea_K)); 
+    
     % Extract x and y components
     x_vals = rtipdata(1, :)*10^3; y_vals = rtipdata(2, :)*10^3;
 
@@ -35,25 +50,23 @@ function cost = get_prbm_cost(z, params)
     
     %% Radial Stiffness Kr
     I = @(t,w) w*t^3/12; 
-    Kr = 1/(sin(theta)^2*l/(2*E*I(t,w))+...
-        cos(theta)^2*l^3/(6*E*I(t,w))); 
+    Kr = E*w*t/(l*sin(theta));
     
     %% Bending Stiffness Kb
     K_theta = 2.65; alpha = 0.8517; % PRBM coefficients
-    Kb = 2*alpha*K_theta*E*I(t,w)/(l_eff); 
+    Kb = 4*alpha*K_theta*E*I(t,w)/(l_eff); % PRBM eqn, dT/dtheta
 
     % Kb Upper Bound due to Motor Specs
     Kb_max_motor = 2*Tmax/(SF*pi/2); 
     
     % Kb Upper Bound due to yield stress
-    s = get_s();  
-    Kb_max_yield = sigma_yield*w*t^2/(SF*6*l_eff*s); 
+    Kb_max_yield = sigma_yield*w*t^2/(6*pi/4); 
     
     % penalizes heavily for breaking bounds
     penalty = 100 * (Kb > Kb_max_motor | Kb > Kb_max_yield);
     
     cost = Kb/Kr + penalty; 
-    data = [Kb Kr Kb_max_motor Kb_max_yield s];
+    data = [Kb Kr Kb_max_motor Kb_max_yield];
 
     %% Helper Functions
     function rC = prbm(theta_p)
@@ -64,13 +77,5 @@ function cost = get_prbm_cost(z, params)
         rC = rB + (lc+l_r/2)*(cos(theta)*ihat + sin(theta)*jhat)...
              +(l_tip)*(sin(theta_p)*ihat + cos(theta_p)*jhat)...
             + l_top*(cos(theta_p)*-ihat + sin(theta_p)*jhat);
-    end
-
-    function s = get_s()
-        s = 0; 
-        for j = 1:length(theta_vals)-1
-            r = sqrt(x_vals(j)^2 + y_vals(j)^2); 
-            s = s + r*(theta_vals(j+1)-theta_vals(j)); 
-        end
     end
 end

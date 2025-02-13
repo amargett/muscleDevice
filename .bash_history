@@ -55,3 +55,15 @@ git status
 git add .
 git commit -m "copying 2024 repo"
 git push
+git status
+git add .
+git commit -m "sorta working double opt"
+git push
+cd ..
+cd ..
+cd 2.12
+git clone [200~https://github.com/mit212/lab3_2024.git~
+git clonetps://github.com/mit212/lab3_2024.git~
+git clone [200~tps://github.com/mit212/lab3_2024.git~
+git clone tps://github.com/mit212/lab3_2024.git~
+lab[B

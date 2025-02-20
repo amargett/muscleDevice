@@ -67,3 +67,19 @@ git clonetps://github.com/mit212/lab3_2024.git~
 git clone [200~tps://github.com/mit212/lab3_2024.git~
 git clone tps://github.com/mit212/lab3_2024.git~
 lab[B
+git status
+git add .
+git commit -m "modifications for torsional stiffness"
+git push
+cd ~
+cd ..
+ cd ..
+cd 2.12
+git clone https://github.com/mit212/lab3_2024.git
+ls
+git clone https://github.com/mit212/lab3_2024.git
+git clone https://github.com/mit212/lab3_2025.git
+cd lab3_2025
+git add .
+git commit -m "copying 2024 lab"
+git push

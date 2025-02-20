@@ -2,11 +2,11 @@ clear; close all;
 % Parameters
 theta_max = pi/4; % Maximum angle
 num_frames = 100; % Number of animation frames
-theta_vals = linspace(0, theta_max, num_frames);
+theta_vals = linspace(0, pi/2, num_frames);
 
 % GIF parameters
 gif_filename = 'prbm_animation.gif'; % Output GIF file name
-delay_time = 0.1; % Delay between frames (in seconds)
+delay_time = 0.05; % Delay between frames (in seconds)
 
 %% Parameters to set
 r_well = 7.5; % mm
@@ -30,7 +30,7 @@ hold on;
 axis equal;
 grid on;
 xlim([-r_well, r_well]);
-ylim([0, r_well]);
+ylim([-r_well, r_well]);
 xlabel('X-axis');
 ylabel('Y-axis');
 title('PRBM Animation');

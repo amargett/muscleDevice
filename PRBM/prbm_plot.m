@@ -1,6 +1,6 @@
 close all; clear; 
 N = 100; 
-theta_vals = linspace((90- 17/2)*pi/180, 0, N); 
+theta_vals = linspace(78.9*pi/180, 0, N); 
 
 rtipdata = zeros(2,N); 
 for i = 1:N

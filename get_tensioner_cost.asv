@@ -1,0 +1,12 @@
+function cost = get_tensioner_cost(params)
+% params: [r_inner, r_well, t0, l_m, t_min, w, E]
+r_inner = params(1); r_well = params(2); t0 = params(3); l_m = params(4); 
+t_min = params(5); w = params(6); E = params(6); 
+
+l = r_well -t0-r_inner -l_m; t = t_min; 
+
+I = @(t,w) w*t^3/12; 
+gamma = 0.8517; K_theta = 2.65; % PRBM Parame
+Kt = 4*gamma*K_theta*E*I(t,w)/l; % PRBM eqn, dT/dtheta
+
+end

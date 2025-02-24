@@ -52,9 +52,17 @@ for frame = 1:num_frames
 
     % Forward kinematics (example for 2-link planar robot)
     % Replace with your own joint/link equations
+
+    theta2 = theta_p + pi - theta; 
+    theta3 = theta_p + pi/2 -theta; 
+        rA = (lc+ gamma*l*sin(theta_p))*jhat + gamma*l*cos(theta_p)*ihat; 
+        rC = rA + l_top/2*(cos(theta2)*ihat + sin(theta2)*jhat) ...
+        + (l_tip + lc + l_r/2) * (cos(theta3)*ihat+ sin(theta3)*jhat);
+    end
+
     r1 = (r_inner +lc)*(cos(theta)*ihat + sin(theta)*jhat);
-    r2 = r1 + gamma*l*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
-    r3 = r2 + (lc+l_r)*(cos(theta)*ihat + sin(theta)*jhat); 
+    r2 = r1 + gamma*l_eff*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
+    r3 = r2 + (lc+l_r/2)*(cos(theta)*ihat + sin(theta)*jhat); 
     r4 = r3 + l_top*(cos(theta_p)*-ihat + sin(theta_p)*jhat); 
     r5 = r4 +(l_tip)*(sin(theta_p)*ihat + cos(theta_p)*jhat);
 

@@ -83,3 +83,7 @@ cd lab3_2025
 git add .
 git commit -m "copying 2024 lab"
 git push
+git status
+git add .
+git commit -m "fixed prbm back to original"
+git push

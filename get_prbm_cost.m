@@ -27,7 +27,7 @@ function cost = get_prbm_cost(z, params)
         rtipdata(:,i) = prbm(theta_vals(i)); 
     end
     
-        % Given x value to search for
+    % Given x value to search for
     x_target = 0.844E-3; % Change this to x value from FEA
     
     % Find the index of the closest x value in the first row of rtipdata
@@ -39,7 +39,7 @@ function cost = get_prbm_cost(z, params)
     fea_K = (l+l_r-lc)*0.1/theta_closest; 
    
     % Display result
-    disp('K Value found in FEA: '+ string(fea_K)); 
+    % disp('K Value found in FEA: '+ string(fea_K)); 
     
     % Extract x and y components
     x_vals = rtipdata(1, :)*10^3; y_vals = rtipdata(2, :)*10^3;
@@ -61,7 +61,7 @@ function cost = get_prbm_cost(z, params)
     Kb_max_motor = 2*Tmax/(SF*pi/2); 
     
     % Kb Upper Bound due to yield stress;
-    Kb_max_yield = 2*sigma_yield*w*t^2/(6*pi/4); 
+    Kb_max_yield = 2*sigma_yield*w*t^2/(6*5*pi/8); 
     
     % penalizes heavily for breaking bounds
     penalty = 100 * (Kb > Kb_max_motor | Kb > Kb_max_yield);
@@ -73,10 +73,10 @@ function cost = get_prbm_cost(z, params)
     function rC = prbm(theta_p)
         % finds endpoint position as a function of theta
         ihat = [1 0]; jhat = [0 1]; 
-        theta2 = theta_p + pi - theta; 
-        theta3 = theta_p + pi/2 -theta; 
-        rA = (lc+ gamma*l*sin(theta_p))*jhat + gamma*l*cos(theta_p)*ihat; 
-        rC = rA + l_top/2*(cos(theta2)*ihat + sin(theta2)*jhat) ...
-        + (l_tip + lc + l_r/2) * (cos(theta3)*ihat+ sin(theta3)*jhat);
+        r1 = (r_inner +lc)*(cos(theta)*ihat + sin(theta)*jhat);
+        r2 = r1 + gamma*l*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
+        r3 = r2 + (lc+l_r)*(cos(theta)*ihat + sin(theta)*jhat); 
+        r4 = r3 + l_top*(cos(theta_p)*-ihat + sin(theta_p)*jhat); 
+        rC = r4 +(l_tip)*(sin(theta_p)*ihat + cos(theta_p)*jhat);
     end
 end

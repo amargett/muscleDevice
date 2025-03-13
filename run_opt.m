@@ -21,13 +21,13 @@ k_min = 0.3; k_max = 5; %N/m
 l_max = r_well- t0 - r_inner - l_m; % upper bound beam length
 % manufacturing limits, not sure of this yet
 t_min = 0.1E-3; %mm, min reasonable thickness
-w_min = 0.1E-3; %mm, min reasonable width
+w_min = 3.175E-3; %mm, min reasonable width
 
 %% Optimization to minimize Kb/Kr
 fun = @(z) get_prbm_cost(z, params); 
 
 lb = [3*pi/8, r_well/2, t_min, w_min]; % lower bound 
-ub = [80*pi/180, l_max, 0.5E-3, 0.5E-3]; % upper bound
+ub = [80*pi/180, l_max, 0.5E-3, 3.175E-3]; % upper bound
 z0 = [0, r_well/2, t_min, w_min]; 
 
 [z, fval1] = fmincon(fun, z0, [], [], [], [], lb, ub); 
@@ -41,15 +41,15 @@ p_beams = [E t0 r_well z(4) t_min];
 fun = @(h) get_beam_cost(h, p_beams, p, false); 
 h0= p + [0 0 0 0 0 1];
 % 
-ms = MultiStart('UseParallel', true); % Enable parallel computing for speed
-problem = createOptimProblem('fmincon', 'x0', h0, 'objective', fun, 'lb', [], 'ub', []);
-[x_multi, fval_multi] = run(ms, problem, 50); % Try 50 different initial points
-
-h = x_multi; 
-fval2 = fval_multi;
-get_beam_cost(h, p_beams, p, true); 
-% h = h0; 
-% fval2 = fun(h);
+% ms = MultiStart('UseParallel', true); % Enable parallel computing for speed
+% problem = createOptimProblem('fmincon', 'x0', h0, 'objective', fun, 'lb', [], 'ub', []);
+% [x_multi, fval_multi] = run(ms, problem, 50); % Try 50 different initial points
+% 
+% h = x_multi; 
+% fval2 = fval_multi;
+% get_beam_cost(h, p_beams, p, true); 
+h = h0; 
+fval2 = fun(h);
 %% Display Variables & Data
 varNames = {'theta [deg]', 'l [mm]', 't [mm]', 'w [mm]'};
 resultsTable = table(varNames', z_deg_mm', 'VariableNames', ...

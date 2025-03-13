@@ -8,17 +8,19 @@ function cost = get_prbm_cost(z, params)
     %% Get Input Variables
     E = params(1); r_well = params(2); t0 = params(3); r_inner = params(4); 
     poly_order = params(5); SF = params(6); Tmax = params(7); sigma_yield = params(8); 
-    theta_f = params(9);
 
     theta = z(1); l = z(2); t = z(3); w = z(4); 
     
     %% PRBM/geometric parameters
-    gamma = 0.8517; 
-    l_r = r_well-r_inner-t0-l-0.75E-3; % rigid length
-    l_tip = r_well-t0-(l+l_r+r_inner)*sin(theta); % mm, length of variable stiffness tip
-    lc=(1-gamma)*l/2;
-    l_top = (r_inner+l+l_r)*cos(theta); 
+    y = 0.8517; 
+    lc=(1-y)*l/2;
+    l_tip = 0.25E-3; 
 
+    x0 = t + 0.5E-3
+    y0 = sqrt(r_inner^2 - x0^2)
+    l_r = r_well-t0 -l*sin(theta) -l_tip-y0 % rigid length
+    l_top = x0+l*cos(theta); 
+    
     %% Fit Polynomial to PRBM Data
     N = 100; theta_vals = linspace(0, theta, N); 
     
@@ -27,7 +29,7 @@ function cost = get_prbm_cost(z, params)
         rtipdata(:,i) = prbm(theta_vals(i)); 
     end
     
-        % Given x value to search for
+    % Given x value to search for
     x_target = 0.844E-3; % Change this to x value from FEA
     
     % Find the index of the closest x value in the first row of rtipdata
@@ -55,7 +57,7 @@ function cost = get_prbm_cost(z, params)
     
     %% Bending Stiffness Kb
     K_theta = 2.65; % PRBM coefficient
-    Kb = 4*gamma*K_theta*E*I(t,w)/l; % PRBM eqn, dT/dtheta
+    Kb = 4*y*K_theta*E*I(t,w)/l; % PRBM eqn, dT/dtheta
 
     % Kb Upper Bound due to Motor Specs
     Kb_max_motor = 2*Tmax/(SF*pi/2); 
@@ -66,17 +68,26 @@ function cost = get_prbm_cost(z, params)
     % penalizes heavily for breaking bounds
     penalty = 100 * (Kb > Kb_max_motor | Kb > Kb_max_yield);
     
-    cost = Kb/Kr + penalty; 
+    cost = Kb + penalty; 
     data = [Kb Kr Kb_max_motor Kb_max_yield];
 
     %% Helper Functions
     function rC = prbm(theta_p)
         % finds endpoint position as a function of theta
+
+        theta2 = theta_p + pi - theta; 
+        theta3 = theta_p + pi/2 -theta; 
+        
         ihat = [1 0]; jhat = [0 1]; 
-        r1 = (r_inner +lc)*(cos(theta)*ihat + sin(theta)*jhat);
-        r2 = r1 + gamma*l*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
-        r3 = r2 + (lc+l_r)*(cos(theta)*ihat + sin(theta)*jhat); 
-        r4 = r3 + l_top*(cos(theta_p)*-ihat + sin(theta_p)*jhat); 
-        rC = r4 +(l_tip)*(sin(theta_p)*ihat + cos(theta_p)*jhat);
+        rA = (y0+ lc+ y*l*sin(theta_p))*jhat + x0 + y*l*cos(theta_p)*ihat; 
+        rC = rA + l_top*(cos(theta2)*ihat + sin(theta2)*jhat) ...
+        + (l_tip + lc + l_r/2) * (cos(theta3)*ihat+ sin(theta3)*jhat);
+
+        % r1 = x0*ihat + y0*jhat; 
+        % r2 = r1 + lc*(cos(theta)*ihat + sin(theta)*jhat);
+        % r3 = r2 + (gamma*l+lc)*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
+        % r4 = r3 +(l_r)*(cos(-theta_p+pi/2)*ihat + sin(-theta_p+pi/2)*jhat);
+        % r5 = r4 + l_top*(cos(-theta_p+pi)*ihat + sin(-theta_p+pi)*jhat);
+        % rC = r5 + l_tip*(cos(-theta_p+pi/2)*ihat + sin(-theta_p+pi/2)*jhat);
     end
 end

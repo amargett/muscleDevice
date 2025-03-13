@@ -11,8 +11,7 @@ for i =1:N
 end
 
 plot(E_vals, K_vals)
-xlabel('E [MPa]'); ylabel('K [N/m]'); 
-
+xlabel('E [MPa]'); ylabel('K ')
 
 l2_vals = linspace(1,5, N); %mm
 

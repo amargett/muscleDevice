@@ -8,17 +8,19 @@ function cost = get_prbm_cost(z, params)
     %% Get Input Variables
     E = params(1); r_well = params(2); t0 = params(3); r_inner = params(4); 
     poly_order = params(5); SF = params(6); Tmax = params(7); sigma_yield = params(8); 
-    theta_f = params(9);
 
     theta = z(1); l = z(2); t = z(3); w = z(4); 
     
     %% PRBM/geometric parameters
     gamma = 0.8517; 
-    l_r = r_well-r_inner-t0-l-0.75E-3; % rigid length
-    l_tip = r_well-t0-(l+l_r+r_inner)*sin(theta); % mm, length of variable stiffness tip
     lc=(1-gamma)*l/2;
-    l_top = (r_inner+l+l_r)*cos(theta); 
+    l_tip = 0.25E-3; 
 
+    x0 = t + 0.5E-3; 
+    y0 = sqrt(r_inner^2 - x0^2);
+    l_r = r_well-t0 -l_tip -l*sin(theta)-y0; % rigid length
+    l_top = x0+l*cos(theta); 
+    
     %% Fit Polynomial to PRBM Data
     N = 100; theta_vals = linspace(0, theta, N); 
     
@@ -66,17 +68,18 @@ function cost = get_prbm_cost(z, params)
     % penalizes heavily for breaking bounds
     penalty = 100 * (Kb > Kb_max_motor | Kb > Kb_max_yield);
     
-    cost = Kb/Kr + penalty; 
+    cost = Kb + penalty; 
     data = [Kb Kr Kb_max_motor Kb_max_yield];
 
     %% Helper Functions
     function rC = prbm(theta_p)
         % finds endpoint position as a function of theta
         ihat = [1 0]; jhat = [0 1]; 
-        r1 = (r_inner +lc)*(cos(theta)*ihat + sin(theta)*jhat);
-        r2 = r1 + gamma*l*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
-        r3 = r2 + (lc+l_r)*(cos(theta)*ihat + sin(theta)*jhat); 
-        r4 = r3 + l_top*(cos(theta_p)*-ihat + sin(theta_p)*jhat); 
-        rC = r4 +(l_tip)*(sin(theta_p)*ihat + cos(theta_p)*jhat);
+        r1 = x0*ihat + (y0)*jhat; 
+        r2 = r1 + 2*lc*(cos(theta)*ihat + sin(theta)*jhat);
+        r3 = r2 + (gamma*l)*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
+        r4 = r3 +(l_r)*(cos(-theta_p+pi/2)*ihat + sin(-theta_p+pi/2)*jhat);
+        r5 = r4 + l_top*(cos(-theta_p+pi)*ihat + sin(-theta_p+pi)*jhat);
+        rC = r5 + l_tip*(cos(-theta_p+pi/2)*ihat + sin(-theta_p+pi/2)*jhat);
     end
 end

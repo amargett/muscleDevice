@@ -1,8 +1,6 @@
-function cost = get_beam_cost(h, params, p_in, last)
-    % h, p_in : parameters for parametric curve of the outside, inside beams
-    
-    %% Data Tracking Variables
+function [K_high, K_low] = get_beam_cost(h, params, p_in, last)
     global data2; 
+    % h, p_in : parameters for parametric curve of the outside, inside beams
     %% Get Input Variables
     E = params(1); t0 = params(2); r_well = params(3); w = params(4); t_min = params(5); 
     R0 = r_well -t0/2; N = 100; [rpi, tpi] = get_rt(pi); 
@@ -13,11 +11,6 @@ function cost = get_beam_cost(h, params, p_in, last)
     %% Find Stiffness
     K_high = get_K(pi/2); K_low = get_K(pi); data2 = [K_high, K_low]; 
 
-    cost = K_low/K_high; % cost function
-
-    if isnan(cost)||cost<0
-        cost = 10000000; 
-    end
     %% Helper Functions
     function radius = get_r(theta, p)
         % finds radius from a polynomial function

@@ -87,3 +87,7 @@ git status
 git add .
 git commit -m "fixed prbm back to original"
 git push
+git status
+git add .
+git commit -m "working beam model"
+git push

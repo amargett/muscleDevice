@@ -91,3 +91,11 @@ git status
 git add .
 git commit -m "working beam model"
 git push
+cd ..
+cd ..
+cd ..
+cd ..
+cd ..
+cd 2.12
+git clone [200~
+git clone https://github.com/mit212/lab7_2024.git

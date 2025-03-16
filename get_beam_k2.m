@@ -2,46 +2,78 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
 
     close all; 
     % h : parameters for parametric curve of the inside beam
-    R0 = r_well -t0/2; N = 100;  
-    rpi = get_r(pi, t_min);
+    R0 = r_well -t0/2; N = 100; step = pi/N; 
+    rpi = get_r(pi);
     F = 3E-7; % 300 uN of force   
     
     %% Define theta range
     theta_vals = linspace(0, pi, N);
+    theta_b_vals = linspace(pi/2, 99*pi/100, N);
+    
+    poly_order = 5; 
+    p_out = fit_p(); 
+
+    poly_eq = sprintf('%.6f*x^%d', p_out(1), poly_order); % Start with the highest-order term
+    for k = 2:length(p_out)
+        poly_eq = sprintf('%s + %.8f*x^%d', poly_eq, p_out(k), poly_order - (k - 1));
+    end
+
+    disp(poly_eq); 
     
     %% Plot 1: M(theta) for theta_b = pi/2 and theta_b = pi
     figure;
     hold on;
     plot(theta_vals, arrayfun(@(theta) get_M(theta, pi/2), theta_vals), 'b-', 'DisplayName', '\theta_b = \pi/2');
-    plot(theta_vals, arrayfun(@(theta) get_M(theta, pi), theta_vals), 'r--', 'DisplayName', '\theta_b = \pi');
+    plot(theta_vals, arrayfun(@(theta) get_M(theta, 9*pi/16), theta_vals), '-', 'DisplayName', '\theta_b = 9\pi/16');
+    plot(theta_vals, arrayfun(@(theta) get_M(theta, 5*pi/8), theta_vals), '-', 'DisplayName', '\theta_b = 5\pi/8');
+    plot(theta_vals, arrayfun(@(theta) get_M(theta, 3*pi/4), theta_vals), 'g-', 'DisplayName', '\theta_b = 3\pi/4');
+    plot(theta_vals, arrayfun(@(theta) get_M(theta, 7*pi/8), theta_vals), '-', 'DisplayName', '\theta_b = 7\pi/8');
+
     xlabel('\theta [rad]');
     ylabel('M(\theta) [Nm]');
     legend('Location', 'best');
     title('Bending Moment M(\theta)');
     grid on; 
-    
-    %% Plot 2: Thickness t(theta)
-    figure;
-    plot(theta_vals, arrayfun(@(theta) get_t(theta), theta_vals), 'k-', 'LineWidth', 1.5);
-    xlabel('\theta [rad]');
-    ylabel('Thickness t(\theta) [m]');
-    title('Thickness vs. \theta');
-    grid on;
-    
 
-    %% Plot 3: Angular deflection psi(theta_b) from pi/2 to pi
-    theta_b_vals = linspace(pi/2, pi, N);
-    psi_vals = arrayfun(@(theta_b) get_psi(theta_b), theta_b_vals);
-
-    figure;
-    plot(theta_b_vals, psi_vals, 'b-', 'LineWidth', 1.5);
+    figure; 
+    hold on; 
+    plot(theta_b_vals, arrayfun(@(theta_b) get_Fbx(theta_b), theta_b_vals), 'b-', 'DisplayName', 'Fbx');
+    plot(theta_b_vals, arrayfun(@(theta_b) get_Fby(theta_b), theta_b_vals), 'r-', 'DisplayName', 'Fby');
     xlabel('\theta_b [rad]');
-    ylabel('\psi(\theta_b) [rad]');
-    title('Angular Deflection \psi(\theta_b) from \theta_b = \pi/2 to \pi');
+    ylabel('Fb [N]');
+    legend('Location', 'best');
+    title('Boundary Condition Forces vs. \theta_b');
     grid on;
 
-    %% Plot 4: Radial deflection delta(theta_b) from pi/2 to pi
-    delta_vals = arrayfun(@(theta_b) get_delta(theta_b), theta_b_vals);
+    figure; 
+    hold on; 
+    plot(theta_vals, arrayfun(@(theta) get_r_in(theta), theta_vals), 'b-', 'DisplayName', 'r in');
+    plot(theta_vals, arrayfun(@(theta) get_r(theta), theta_vals), '-', 'DisplayName', 'r');
+    legend('Location', 'best');
+    title('radii');
+    grid on
+    
+    % %% Plot 2: Thickness t(theta)
+    % figure;
+    % plot(theta_vals, arrayfun(@(theta) get_t(theta), theta_vals), 'k-', 'LineWidth', 1.5);
+    % xlabel('\theta [rad]');
+    % ylabel('Thickness t(\theta) [m]');
+    % title('Thickness vs. \theta');
+    % grid on;
+    % 
+    % 
+    % %% Plot 3: Angular deflection psi(theta_b) from pi/2 to pi
+    % psi_vals = arrayfun(@(theta_b) get_psi(theta_b), theta_b_vals);
+    % 
+    % figure;
+    % plot(theta_b_vals, psi_vals, 'b-', 'LineWidth', 1.5);
+    % xlabel('\theta_b [rad]');
+    % ylabel('\psi(\theta_b) [rad]');
+    % title('Angular Deflection \psi(\theta_b) from \theta_b = \pi/2 to \pi');
+    % grid on;
+    % 
+    % Plot 4: Radial deflection delta(theta_b) from pi/2 to pi
+    delta_vals = arrayfun(@(theta_b) get_du_delta(theta_b), theta_b_vals);
 
     figure;
     plot(theta_b_vals, delta_vals, 'r-', 'LineWidth', 1.5);
@@ -59,9 +91,77 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
     ylabel('K [N/m]');
     title('Stiffness K from \theta_b = \pi/2 to \pi');
     grid on;
+    % 
+    % %% Plot 6: Stresses
+    % figure;
+    % hold on 
+    % plot(theta_vals,arrayfun(@(theta) get_stress(theta, pi/2), theta_vals), 'b-', 'DisplayName', '\theta_b = \pi/2');
+    % plot(theta_vals,arrayfun(@(theta) get_stress(theta, pi), theta_vals), 'r-', 'DisplayName', '\theta_b = \pi');
+    % xlabel('\theta [rad]');
+    % ylabel('stress \sigma) [N/m^2]');
+    % legend('Location', 'best');
+    % title('Stress');
+    % grid on;
+
+    % %% Plot 7: Slope from pi/2 to pi
+    % psi_vals = get_psi_vals(pi/2); 
+    % 
+    % figure;
+    % plot(theta_vals, psi_vals, 'r-', 'LineWidth', 1.5);
+    % xlabel('\theta [rad]');
+    % ylabel('slope [rad]');
+    % title('Slope');
+    % grid on;
+    % 
+    % %% Plot 8: Deflection from pi/2 to pi
+    % delta_vals = get_delta_vals(pi/2); 
+    % 
+    % figure;
+    % plot(theta_vals, delta_vals, 'r-', 'LineWidth', 1.5);
+    % xlabel('\theta [rad]');
+    % ylabel('Deflection [rad]');
+    % title('Deflection');
+    % grid on;
 
  
     %% Helper Functions
+    function stress = get_stress(theta, theta_b)
+        M = get_M(theta, theta_b); 
+        t = get_t(theta);
+        c = t/2; 
+        I = w*t^3/12; 
+
+        stress= M*c/I; 
+    end
+
+    function p_out = fit_p()
+        x_out = zeros(1, N/2); y_out = zeros(1, N/2);
+        for i = 1:N/2
+            th = theta_vals(i+N/2); 
+            t = get_t(th); r = get_r_in(th) + t; 
+            x_out(i) = 10^3*r*sin(th-pi/2); y_out(i) = 10^3*r*cos(th-pi/2); 
+        end
+
+        p_out = polyfit(x_out, y_out, poly_order);
+
+        % Evaluate the polynomial for a smooth curve
+        x_fit = linspace(min(x_out), max(x_out), 100);
+        y_fit = polyval(p_out, x_fit);
+        y_fit2 = polyval(p_in, x_fit); 
+                
+        % Plot original data
+        figure;
+        plot(x_out, y_out, 'o', 'DisplayName', 'Original Data');
+        hold on;
+        
+        % Plot polynomial fit
+        plot(x_fit, y_fit, '-', 'DisplayName', ['PRBM Poly Fit (Order ', num2str(poly_order), ')']);
+
+        % Plot polynomial fit
+        plot(x_fit, y_fit2, '-', 'DisplayName', ['PRBM Poly Fit (Order ', num2str(poly_order), ')']);
+        hold off
+    end
+
     function radius = get_rp(theta, p)
         % finds radius from a polynomial function
         th = theta-pi/2;
@@ -81,12 +181,16 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
     end
 
     function r_in = get_r_in(theta)
-        r_in = 1E-3* get_rp(theta, p_in); 
-        
+        if theta< pi/2
+            r_in = R0 - t0/2; 
+        else
+            r_in = 1E-3* get_rp(theta, p_in); 
+        end
     end
 
-    function r = get_r(theta,t)
+    function r = get_r(theta)
         %finds radius at each theta in 
+        t = get_t(theta); 
         if theta <= pi/2
             r = R0; 
         else
@@ -96,94 +200,75 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
         end
     end
     
-    function [Fbx, Fby]  = get_Fb(F, theta_b)
-        Fb = F*(R0 + rpi)/(sin(theta_b)*(rpi+get_r_in(theta_b)*cos(theta_b))...
-            -cos(theta_b)*(get_r_in(theta_b)*sin(theta_b))); 
-        Fby = Fb*cos(theta_b); Fbx = Fb*sin(theta_b); 
+    function [Fbx, Fby, M_R]  = get_Fb(theta_b)
+        r_in = get_r_in(theta_b); 
+        r_BR_x = r_in*sin(theta_b); r_BR_y = rpi+ r_in*cos(theta_b); 
+        r_FB_y  = R0 - r_in*cos(theta_b); 
+
+        Fb = F*(r_FB_y + r_BR_y)/(sin(theta_b)*r_BR_y - cos(theta_b)*r_BR_x);
+        Fby = Fb*cos(theta_b);
+        Fbx = Fb*sin(theta_b);
+
+        M_R = Fbx*r_BR_y - F*(R0 + rpi) - Fby*r_BR_x; 
     end
 
+    function Fbx = get_Fbx(theta_b)
+        [Fbx, ~, ~] = get_Fb(theta_b); 
+    end
+    function Fby = get_Fby(theta_b)
+        [~, Fby, ~] = get_Fb(theta_b);
+    end
+    function M_r = get_MR(theta_b)
+        [~, ~, M_r] = get_Fb(theta_b);
+    end
 
-    function Mb = get_Mb(F, theta_b, theta, t)
-        [Fbx, Fby] = get_Fb(F, theta_b); 
-        r = get_r(theta, t); r_in = get_r_in(theta_b); 
+    function Mb = get_Mb(theta_b, theta)
+        [Fbx, Fby, ~] = get_Fb(theta_b); 
+        r = get_r(theta); r_in = get_r_in(theta_b); 
+        r_Bth_y = -r*cos(theta) + r_in*cos(theta_b); 
+        r_Bth_x = -r*sin(theta) + r_in*(sin(theta_b)); 
 
-        Mb = Fbx*(r*cos(theta) - r_in*cos(theta_b))...
-            + Fby*(r*sin(theta)-r_in*sin(theta_b)); 
+        Mb = -Fbx*r_Bth_y + Fby*r_Bth_x; 
     end
 
     function t = get_t(theta)
         if theta<= pi/2
             t = t0; 
         else
-            t = t0 + (t_min - t0) * (theta - pi/2) / pi/2;
+            t = t0 + (t_min - t0) * (theta - pi/2) / (pi/2);
         end
     end
 
     function M = get_M(theta, theta_b)
-        t = get_t(theta); 
-        r = get_r(theta, t); 
+        r = get_r(theta); 
     
         if theta <= theta_b
             M = F*(R0 - r * cos(theta)); 
         else
-            M = F*(R0 - r * cos(theta)) + get_Mb(F, theta_b, theta, t); 
+            M = F*(R0 - r * cos(theta)) + get_Mb(theta_b, theta); 
+        end
+
+        if theta == pi
+            M = F*(R0 - r * cos(theta)) + get_Mb(theta_b, theta) ...
+                + get_MR(theta_b); 
         end
     end
-
 
     function I = get_I(theta)
         t = get_t(theta);
         I = w*t.^3/12; 
     end
-
-    % Function to compute psi_vals using trapezoidal rule for numerical integration
-    function psi_vals = get_psi_vals(theta_b)
-        psi_vals = zeros(size(theta_vals)); 
-        for i = 2:N
+    
+    function delta = get_du_delta(theta_b)
+        du = zeros(size(theta_vals(N/2:N))); 
+        for i = N/2:N
             theta = theta_vals(i); 
             M = get_M(theta, theta_b); 
+            r = get_r(theta); 
             I = get_I(theta); 
-            
-            % Apply trapezoidal rule step (assuming equal spacing in theta_vals)
-            h = theta_vals(i) - theta_vals(i-1);  % Step size
-            if i == 2
-                psi_vals(i) = (M / (E * I)) * h / 2;  % First value has only half weight
-            else
-                psi_vals(i) = (M / (E * I)) * h;  % Subsequent values have full weight
-            end
+            du(i) = M^2*r/(2*E*I); 
         end
+       U = trapz(theta_vals, du); 
+       delta = U/F; 
     end
-    
-    % Function to compute psi using the trapezoidal rule
-    function psi = get_psi(theta_b)
-        psi_vals = get_psi_vals(theta_b);
-        h = theta_vals(2) - theta_vals(1);  % Step size
-        % Apply trapezoidal rule for integration over psi_vals
-        psi = (h / 2) * (psi_vals(1) + psi_vals(end) + 2 * sum(psi_vals(2:end-1)));
-    end
-    
-    % Function to compute delta_vals using trapezoidal rule
-    function delta_vals = get_delta_vals(theta_b)
-        delta_vals = zeros(size(theta_vals)); 
-        psi_vals = get_psi_vals(theta_b); 
-        for i = 2:N
-            h = theta_vals(i) - theta_vals(i-1);  % Step size for delta
-            if i == 2
-                delta_vals(i) = psi_vals(i) * h / 2;  % First value has half weight
-            else
-                delta_vals(i) = psi_vals(i) * h;  % Subsequent values have full weight
-            end
-        end
-    end
-    
-    % Function to compute delta using the trapezoidal rule
-    function delta = get_delta(theta_b)
-        delta_vals = get_delta_vals(theta_b);
-        h = theta_vals(2) - theta_vals(1);  % Step size
-        % Apply trapezoidal rule for integration over delta_vals
-        delta = (h / 2) * (delta_vals(1) + delta_vals(end) + 2 * sum(delta_vals(2:end-1)));
-    end
-
-
-
 end

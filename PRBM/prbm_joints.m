@@ -18,7 +18,7 @@ r_inner = 3; % mm, radius of inner circle
 l_tip = 0.25; 
 x0 = t + 0.5; 
 y0 = sqrt(r_inner^2 - x0^2);
-l_r = r_well-t0 -l*sin(theta) -l_tip-y0; % rigid length
+l_r = (r_well-t0 -l*sin(theta) -l_tip-y0)/cos(theta); % rigid length
 l_top = x0+l*cos(theta); 
 
 
@@ -59,7 +59,7 @@ for frame = 1:num_frames
     r1 = x0*ihat + y0*jhat; 
     r2 = r1 + lc*(cos(theta)*ihat + sin(theta)*jhat);
     r3 = r2 + (gamma*l+lc)*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
-    r4 = r3 +(l_r)*(cos(-theta_p+pi/2)*ihat + sin(-theta_p+pi/2)*jhat);
+    r4 = r3 +(l_r)*(cos(theta-theta_p)*ihat + sin(theta-theta_p)*jhat);
     r5 = r4 + l_top*(cos(-theta_p+pi)*ihat + sin(-theta_p+pi)*jhat);
     r6 = r5 + l_tip*(cos(-theta_p+pi/2)*ihat + sin(-theta_p+pi/2)*jhat);
 

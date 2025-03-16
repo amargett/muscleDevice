@@ -18,7 +18,7 @@ function cost = get_prbm_cost(z, params)
 
     x0 = t + 0.5E-3; 
     y0 = sqrt(r_inner^2 - x0^2);
-    l_r = r_well-t0 -l_tip -l*sin(theta)-y0; % rigid length
+    l_r = (r_well-t0 -l_tip -l*sin(theta)-y0)/sin(theta); % rigid length
     l_top = x0+l*cos(theta); 
     
     %% Fit Polynomial to PRBM Data
@@ -79,6 +79,7 @@ function cost = get_prbm_cost(z, params)
         r2 = r1 + 2*lc*(cos(theta)*ihat + sin(theta)*jhat);
         r3 = r2 + (gamma*l)*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
         r4 = r3 +(l_r)*(cos(-theta_p+pi/2)*ihat + sin(-theta_p+pi/2)*jhat);
+        r4 = r3 +(l_r)*(cos(theta-theta_p)*ihat +sin(theta-theta_p)*jhat);
         r5 = r4 + l_top*(cos(-theta_p+pi)*ihat + sin(-theta_p+pi)*jhat);
         rC = r5 + l_tip*(cos(-theta_p+pi/2)*ihat + sin(-theta_p+pi/2)*jhat);
     end

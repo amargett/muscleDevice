@@ -61,27 +61,7 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
     % title('Thickness vs. \theta');
     % grid on;
     % 
-    % 
-    % %% Plot 3: Angular deflection psi(theta_b) from pi/2 to pi
-    % psi_vals = arrayfun(@(theta_b) get_psi(theta_b), theta_b_vals);
-    % 
-    % figure;
-    % plot(theta_b_vals, psi_vals, 'b-', 'LineWidth', 1.5);
-    % xlabel('\theta_b [rad]');
-    % ylabel('\psi(\theta_b) [rad]');
-    % title('Angular Deflection \psi(\theta_b) from \theta_b = \pi/2 to \pi');
-    % grid on;
-    % 
-    % Plot 4: Radial deflection delta(theta_b) from pi/2 to pi
     delta_vals = arrayfun(@(theta_b) get_du_delta(theta_b), theta_b_vals);
-
-    figure;
-    plot(theta_b_vals, delta_vals, 'r-', 'LineWidth', 1.5);
-    xlabel('\theta_b [rad]');
-    ylabel('\delta(\theta_b) [m]');
-    title('Radial Deflection \delta(\theta_b) from \theta_b = \pi/2 to \pi');
-    grid on;
-
     %% Plot 5: Stiffness K from pi/2 to pi
     K_vals = F./delta_vals; 
 
@@ -92,37 +72,17 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
     title('Stiffness K from \theta_b = \pi/2 to \pi');
     grid on;
     % 
-    % %% Plot 6: Stresses
-    % figure;
-    % hold on 
-    % plot(theta_vals,arrayfun(@(theta) get_stress(theta, pi/2), theta_vals), 'b-', 'DisplayName', '\theta_b = \pi/2');
-    % plot(theta_vals,arrayfun(@(theta) get_stress(theta, pi), theta_vals), 'r-', 'DisplayName', '\theta_b = \pi');
-    % xlabel('\theta [rad]');
-    % ylabel('stress \sigma) [N/m^2]');
-    % legend('Location', 'best');
-    % title('Stress');
-    % grid on;
-
-    % %% Plot 7: Slope from pi/2 to pi
-    % psi_vals = get_psi_vals(pi/2); 
-    % 
-    % figure;
-    % plot(theta_vals, psi_vals, 'r-', 'LineWidth', 1.5);
-    % xlabel('\theta [rad]');
-    % ylabel('slope [rad]');
-    % title('Slope');
-    % grid on;
-    % 
-    % %% Plot 8: Deflection from pi/2 to pi
-    % delta_vals = get_delta_vals(pi/2); 
-    % 
-    % figure;
-    % plot(theta_vals, delta_vals, 'r-', 'LineWidth', 1.5);
-    % xlabel('\theta [rad]');
-    % ylabel('Deflection [rad]');
-    % title('Deflection');
-    % grid on;
-
+    
+    %% Plot 6: Stresses
+    figure;
+    hold on 
+    plot(theta_vals,arrayfun(@(theta) get_stress(theta, pi/2), theta_vals), 'b-', 'DisplayName', '\theta_b = \pi/2');
+    plot(theta_vals,arrayfun(@(theta) get_stress(theta, pi), theta_vals), 'r-', 'DisplayName', '\theta_b = \pi');
+    xlabel('\theta [rad]');
+    ylabel('stress \sigma) [N/m^2]');
+    legend('Location', 'best');
+    title('Stress');
+    grid on;
  
     %% Helper Functions
     function stress = get_stress(theta, theta_b)
@@ -224,7 +184,7 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
 
     function Mb = get_Mb(theta_b, theta)
         [Fbx, Fby, ~] = get_Fb(theta_b); 
-        r = get_r(theta); r_in = get_r_in(theta_b); 
+        r = get_r(theta); r_in = get_r(theta_b); 
         r_Bth_y = -r*cos(theta) + r_in*cos(theta_b); 
         r_Bth_x = -r*sin(theta) + r_in*(sin(theta_b)); 
 
@@ -256,19 +216,22 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
 
     function I = get_I(theta)
         t = get_t(theta);
-        I = w*t.^3/12; 
+        I = w*t^3/12; 
     end
     
     function delta = get_du_delta(theta_b)
-        du = zeros(size(theta_vals(N/2:N))); 
-        for i = N/2:N
+        du = zeros(size(theta_vals)); 
+        for i = 1:N
             theta = theta_vals(i); 
             M = get_M(theta, theta_b); 
             r = get_r(theta); 
             I = get_I(theta); 
-            du(i) = M^2*r/(2*E*I); 
+            du(i) = M^2*r/(E*I); 
         end
        U = trapz(theta_vals, du); 
        delta = U/F; 
+       if theta_b == 99*pi/100
+           F/delta
+       end
     end
 end

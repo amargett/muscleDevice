@@ -99,3 +99,9 @@ cd ..
 cd 2.12
 git clone [200~
 git clone https://github.com/mit212/lab7_2024.git
+git status
+git add .
+git commit -m "working moments
+
+git commit -m "moment working"
+git push

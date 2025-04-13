@@ -105,3 +105,7 @@ git commit -m "working moments
 
 git commit -m "moment working"
 git push
+git status
+git add .
+git commit -m "beam k2"
+git push

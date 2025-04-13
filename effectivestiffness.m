@@ -2,7 +2,7 @@ clear; close all
 
 N=5; 
 
-E_vals = linspace(0.5, 1.5, N); % MPa
+E_vals = linspace(0.05, 1.5, N); % MPa
 
 K_vals = zeros(size(E_vals)); 
 

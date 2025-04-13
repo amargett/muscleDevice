@@ -111,14 +111,17 @@ function get_beam_k2(p_in, E, t0, r_well, w, t_min)
                 
         % Plot original data
         figure;
-        plot(x_out, y_out, 'o', 'DisplayName', 'Original Data');
+        plot(x_out, y_out, 'o', 'DisplayName', 'Outer Boundary Original Data');
         hold on;
         
         % Plot polynomial fit
-        plot(x_fit, y_fit, '-', 'DisplayName', ['PRBM Poly Fit (Order ', num2str(poly_order), ')']);
+        plot(x_fit, y_fit, '-', 'DisplayName', ['Outer Boundary Poly Fit (Order ', num2str(poly_order), ')']);
 
         % Plot polynomial fit
         plot(x_fit, y_fit2, '-', 'DisplayName', ['PRBM Poly Fit (Order ', num2str(poly_order), ')']);
+        
+        legend('Location','best'); 
+        xlabel('X position [mm]'); ylabel('Y position [mm]')
         hold off
     end
 

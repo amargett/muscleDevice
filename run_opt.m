@@ -5,7 +5,7 @@ data = []; data2 = []; p = []; x_vals = []; y_vals = [];
 %% Parameters to set
 E = 0.14E9; % material property
 r_well = 7.5E-3; % mm
-t0 = 0.5E-3; % mm, thickness of constant part of beam
+t0 = 1E-3; % mm, thickness of constant part of beam
 r_inner = 1E-3; % mm, radius of inner circle
 l_m = 1E-3; % minimum space for pushing motor
 SF = 5; % motor torque safety factor
